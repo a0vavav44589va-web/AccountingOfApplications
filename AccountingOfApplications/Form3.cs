@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,7 @@ namespace AccountingOfApplications
             InitializeComponent();
             _currentUser = user;
             _firebase = firebase;
+            LoadRequestsWithTimer();
             LoadRequests();
             ThemeManager.ApplyTheme(this);
             if (isDarkMode)
@@ -29,20 +31,23 @@ namespace AccountingOfApplications
             else
                 ThemeManager.SetLightTheme(this);
         }
+        private async void LoadRequestsWithTimer()
+        {
+            Stopwatch sw = Stopwatch.StartNew();
 
+            _requests = await _firebase.GetAllRequestsAsync();
+            RefreshDataGridView();
+
+            sw.Stop();
+            MessageBox.Show($"Загрузка заняла: {sw.ElapsedMilliseconds} мс");
+        }
         private async void LoadRequests()
         {
-            try
+            var newRequests = await _firebase.GetAllRequestsAsync();
+            if (newRequests != null)
             {
-                _requests = await _firebase.GetAllRequestsAsync();
-                if (_requests != null)
-                {
-                    RefreshDataGridView();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка загрузки: {ex.Message}");
+                _requests = newRequests;
+                RefreshDataGridView();
             }
         }
 
